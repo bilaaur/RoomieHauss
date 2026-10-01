@@ -4,11 +4,22 @@ import os
 import random
 from datetime import datetime
 
-app = Flask(__name__, static_folder="static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 app.secret_key = 'your_secret_key'
 
+DB_PATH = "/tmp/users.db" if os.environ.get("VERCEL") else "users.db"
+
+
+def get_db_connection():
+  return sqlite3.connect(DB_PATH)
+
 def init_db():
-    conn = sqlite3.connect('users.db')
+    conn = get_db_connection()  
     c = conn.cursor()
 
     c.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -32,13 +43,14 @@ def init_db():
     conn.commit()
     conn.close()
     print("Database checked / created successfully.")
+init_db()
 
 @app.route('/budget-page')
 def budget_page():
     if 'partner1' in session and 'partner2' in session:
         status = session.get('status')
         
-        conn = sqlite3.connect('users.db')
+        conn = get_db_connection()
         c = conn.cursor()
         
         c.execute('''SELECT description, amount, date 
@@ -117,7 +129,7 @@ def add_income():
         amount = int(request.form['amount'])
         date_now = datetime.now().strftime("%Y-%m-%d")
 
-        conn = sqlite3.connect('users.db')
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute('INSERT INTO budget (partner1, partner2, type, description, amount, date) VALUES (?, ?, ?, ?, ?, ?)',
                   (session['partner1'], session['partner2'], 'income', description, amount, date_now))
@@ -136,7 +148,7 @@ def add_outcome():
         amount = int(request.form['amount'])
         date_now = datetime.now().strftime("%Y-%m-%d")
 
-        conn = sqlite3.connect('users.db')
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute('INSERT INTO budget (partner1, partner2, type, description, amount, date) VALUES (?, ?, ?, ?, ?, ?)',
                   (session['partner1'], session['partner2'], 'outcome', description, amount, date_now))
@@ -170,7 +182,7 @@ def register():
     if not partner1 or not partner2 or not pin:
         return render_template('register.html', error='Please fill out all fields.')
 
-    conn = sqlite3.connect('users.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('INSERT INTO users (partner1, partner2, pin, status) VALUES (?, ?, ?, ?)', 
               (partner1, partner2, pin, status))
@@ -188,7 +200,7 @@ def login():
     if not partner1 or not partner2 or not pin:
         return render_template('login.html', error='Please fill out all fields.')
 
-    conn = sqlite3.connect('users.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('SELECT * FROM users WHERE partner1 = ? AND partner2 = ? AND pin = ?', 
               (partner1, partner2, pin))
@@ -242,7 +254,7 @@ def inside_page():
 def get_random_message():
     if 'partner1' not in session or 'partner2' not in session:
         return {'message': "Please log in first."}
-    conn = sqlite3.connect('users.db')
+    conn = get_db_connection()
     c = conn.cursor()
 
     c.execute('''SELECT COALESCE(SUM(amount), 0) FROM budget 
