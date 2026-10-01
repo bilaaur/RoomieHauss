@@ -10,40 +10,104 @@ app = Flask(
     template_folder=os.path.join(BASE_DIR, 'templates'),
     static_folder=os.path.join(BASE_DIR, 'static')
 )
-app.secret_key = 'your_secret_key'
+app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")
 
-DB_PATH = "/tmp/users.db" if os.environ.get("VERCEL") else "users.db"
+
+# ---------------------------------------------------------------
+# Database: Postgres (Neon) kalau ada URL-nya, kalau tidak -> SQLite lokal
+# ---------------------------------------------------------------
+def find_db_url():
+    # Cari URL Postgres dari env var mana pun (DATABASE_URL, POSTGRES_URL, STORAGE_URL, dst.)
+    for key in ("DATABASE_URL", "POSTGRES_URL", "STORAGE_URL"):
+        if os.environ.get(key):
+            return os.environ[key]
+    cands = [(k, v) for k, v in os.environ.items()
+             if v.startswith(("postgres://", "postgresql://"))]
+    # utamakan koneksi pooled, hindari yang UNPOOLED / NON_POOLING
+    cands.sort(key=lambda kv: ("UNPOOLED" in kv[0] or "NON_POOLING" in kv[0], kv[0]))
+    return cands[0][1] if cands else None
+
+
+DATABASE_URL = find_db_url()
+USE_PG = bool(DATABASE_URL)
+if USE_PG and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+DB_PATH = "/tmp/users.db" if os.environ.get("VERCEL") else os.path.join(BASE_DIR, "users.db")
+
+
+class _Cursor:
+    """Bungkus cursor supaya query bergaya SQLite ('?') juga jalan di Postgres ('%s')."""
+    def __init__(self, cur):
+        self._cur = cur
+
+    def execute(self, sql, params=()):
+        if USE_PG:
+            sql = sql.replace("?", "%s")
+        self._cur.execute(sql, params)
+        return self
+
+    def fetchone(self):
+        return self._cur.fetchone()
+
+    def fetchall(self):
+        return self._cur.fetchall()
+
+
+class _Connection:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def cursor(self):
+        return _Cursor(self._conn.cursor())
+
+    def commit(self):
+        self._conn.commit()
+
+    def close(self):
+        self._conn.close()
 
 
 def get_db_connection():
-  return sqlite3.connect(DB_PATH)
+    if USE_PG:
+        import psycopg2
+        return _Connection(psycopg2.connect(DATABASE_URL, connect_timeout=10))
+    return _Connection(sqlite3.connect(DB_PATH))
+
 
 def init_db():
-    conn = get_db_connection()  
+    pk = "SERIAL PRIMARY KEY" if USE_PG else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    conn = get_db_connection()
     c = conn.cursor()
 
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    c.execute(f'''CREATE TABLE IF NOT EXISTS users (
+        id {pk},
         partner1 TEXT NOT NULL,
         partner2 TEXT NOT NULL,
         pin TEXT NOT NULL,
         status TEXT
     )''')
 
-    c.execute('''CREATE TABLE IF NOT EXISTS budget (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    c.execute(f'''CREATE TABLE IF NOT EXISTS budget (
+        id {pk},
         partner1 TEXT NOT NULL,
         partner2 TEXT NOT NULL,
         type TEXT NOT NULL,
         description TEXT NOT NULL,
-        amount INTEGER NOT NULL,
+        amount BIGINT NOT NULL,
         date TEXT NOT NULL
     )''')
 
     conn.commit()
     conn.close()
-    print("Database checked / created successfully.")
-init_db()
+    print("Database checked / created successfully.", "(Postgres)" if USE_PG else "(SQLite)")
+
+
+try:
+    init_db()
+except Exception as e:  # jangan sampai app crash total saat import; error tampil di log
+    print("init_db failed:", repr(e))
+
 
 @app.route('/budget-page')
 def budget_page():
@@ -76,13 +140,13 @@ def budget_page():
                      FROM budget 
                      WHERE partner1 = ? AND partner2 = ? AND type = 'income' ''',
                   (session['partner1'], session['partner2']))
-        total_income = c.fetchone()[0]
+        total_income = int(c.fetchone()[0])
 
         c.execute('''SELECT COALESCE(SUM(amount), 0)
                      FROM budget 
                      WHERE partner1 = ? AND partner2 = ? AND type = 'outcome' ''',
                   (session['partner1'], session['partner2']))
-        total_outcome = c.fetchone()[0]
+        total_outcome = int(c.fetchone()[0])
 
         conn.close()
 
@@ -260,20 +324,21 @@ def get_random_message():
     c.execute('''SELECT COALESCE(SUM(amount), 0) FROM budget 
                  WHERE partner1 = ? AND partner2 = ? AND type = 'income' ''',
               (session['partner1'], session['partner2']))
-    total_income = c.fetchone()[0]
+    total_income = int(c.fetchone()[0])
 
     c.execute('''SELECT COALESCE(SUM(amount), 0) FROM budget 
                  WHERE partner1 = ? AND partner2 = ? AND type = 'outcome' ''',
               (session['partner1'], session['partner2']))
-    total_outcome = c.fetchone()[0]
+    total_outcome = int(c.fetchone()[0])
 
     balance = total_income - total_outcome
 
-    c.execute('''SELECT description, MAX(amount) FROM budget 
-                 WHERE partner1 = ? AND partner2 = ? AND type = 'outcome' ''',
+    c.execute('''SELECT description FROM budget 
+                 WHERE partner1 = ? AND partner2 = ? AND type = 'outcome'
+                 ORDER BY amount DESC LIMIT 1''',
               (session['partner1'], session['partner2']))
     result = c.fetchone()
-    biggest_expense = result[0] if result[0] else None
+    biggest_expense = result[0] if result and result[0] else None
 
     conn.close()
 
@@ -332,5 +397,4 @@ def logout():
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
