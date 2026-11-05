@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+  <div class="background-stars"></div>
+  <div class="auth-container">
+    <h1>Login</h1>
+    <p>Welcome back, please sign in</p>
+    <form action="/login" method="POST">
+      <div class="input-container">
+        <input type="text" name="partner1" placeholder="Partner 1" required>
+        <span class="icon">👤</span>
+      </div>
+      <div class="input-container">
+        <input type="text" name="partner2" placeholder="Partner 2" required>
+        <span class="icon">👤</span>
+      </div>
+      <div class="input-container">
+        <input type="password" name="pin" placeholder="PIN" maxlength="4" inputmode="numeric" pattern="\d*" required>
+        <span class="icon">🔑</span>
+      </div>
+      <button type="submit">Sign in</button>
+    </form>
+    {% if error %}
+      <div class="error-message">{{ error }}</div>
+    {% endif %}
+    <p class="signin-link">
+      Don't have account? <a href="/register-page">Sign up</a>
+    </p>
+  </div>
+  <script src="{{ url_for('static', filename='js/stars.js') }}" defer></script>
+</body>
+</html>

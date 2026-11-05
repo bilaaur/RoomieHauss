@@ -1,0 +1,103 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #98a2a5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+header {
+  width: 100%;
+  height: 70px;
+  flex: none;
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 clamp(16px, 3vw, 30px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+header .logo img { height: 40px; width: auto; }
+header .exit-icon img { cursor: pointer; height: 30px; width: auto; }
+.main-content {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  padding: clamp(16px, 4vw, 50px);
+}
+.house-image {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+.text-content {
+  flex: 1;
+  text-align: center;
+  color: white;
+  padding: 0 20px;
+}
+.text-content p {
+  font-size: clamp(16px, 2.2vw, 18px);
+  line-height: 1.6;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  margin-bottom: 20px;
+}
+.text-content p.welcome {
+  font-size: clamp(18px, 2.6vw, 22px);
+  margin-bottom: 10px;
+}
+.get-inside { margin-top: 20px; }
+.get-inside button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #c47c4d;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.15s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  -webkit-tap-highlight-color: transparent;
+}
+.get-inside button:hover { background-color: #a86338; }
+.get-inside button:active { transform: scale(0.97); }
+.get-inside button img { height: 24px; width: auto; }
+model-viewer {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: clamp(300px, 58vh, 720px);
+  margin: 0 auto;
+  background: transparent;
+}
+@media (max-width: 900px) {
+  .main-content {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+  .house-image { width: 100%; }
+  model-viewer { height: clamp(260px, 46vh, 460px); }
+  .text-content { padding: 0; width: 100%; }
+}
+@media (max-width: 480px) {
+  header { height: 60px; }
+  header .logo img { height: 32px; }
+  header .exit-icon img { height: 26px; }
+  .get-inside button { width: 100%; justify-content: center; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .main-content { flex-direction: row; }
+  model-viewer { height: 70vh; }
+}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoomiE Haus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<body>
+  <div class="background-stars"></div>
+  <div class="container">
+    <div class="image-container">
+      <img src="{{ url_for('static', filename='photo/House.png') }}" alt="House">
+    </div>
+    <div class="text-container">
+      <h1>Welcome to RoomiE Haus</h1>
+      <button onclick="window.location.href='/register-page'">Register</button>
+      <button onclick="window.location.href='/login-page'">Login</button>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/stars.js') }}" defer></script>
+</body>
+</html>

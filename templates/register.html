@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+  {% if success %}
+  <script>alert("{{ success }}");</script>
+  {% endif %}
+  {% if error %}
+  <script>alert("{{ error }}");</script>
+  {% endif %}
+  <div class="background-stars"></div>
+  <div class="auth-container">
+    <h1>Register</h1>
+    <p>Please register to login</p>
+    <form method="POST" action="/register">
+      <div class="input-container">
+        <input type="text" name="partner1" placeholder="Partner 1" required>
+        <span class="icon">👤</span>
+      </div>
+      <div class="input-container">
+        <input type="text" name="partner2" placeholder="Partner 2" required>
+        <span class="icon">👤</span>
+      </div>
+      <div class="input-container">
+        <input type="password" name="pin" placeholder="PIN" maxlength="4" inputmode="numeric" pattern="\d{4}" required>
+        <span class="icon">🔑</span>
+      </div>
+      <div class="input-container">
+        <select name="status" required>
+          <option value="" disabled selected>Select Status</option>
+          <option value="girl">Girl and Girl</option>
+          <option value="boy">Boy and Boy</option>
+          <option value="married">Married</option>
+        </select>
+        <span class="icon">👗</span>
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p class="signin-link">
+      Already have an account? <a href="/login-page">Sign in</a>
+    </p>
+  </div>
+  <script src="{{ url_for('static', filename='js/stars.js') }}" defer></script>
+</body>
+</html>
