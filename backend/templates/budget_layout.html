@@ -1,0 +1,96 @@
+{% macro ledger(title, action, data, btn_label) %}
+<div class="mb-8">
+  <h2 class="text-xl md:text-2xl font-semibold mb-3 section-title">{{ title }}</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full border border-gray-300 mb-4 text-sm md:text-base">
+      <thead class="table-head">
+        <tr>
+          <th class="py-2 px-3 border">Description</th>
+          <th class="py-2 px-3 border">Amount</th>
+          <th class="py-2 px-3 border">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data %}
+        <tr>
+          <td class="py-2 px-3 border">{{ row[0] }}</td>
+          <td class="py-2 px-3 border amount-cell">Rp {{ "{:,}".format(row[1]) }}</td>
+          <td class="py-2 px-3 border amount-cell">{{ row[2] }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="py-2 px-3 text-center text-gray-500">No {{ title|lower }} data.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <form action="{{ action }}" method="POST" class="flex flex-col md:flex-row gap-2 mb-4">
+    <input type="text" name="description" placeholder="Description" required class="border p-2 rounded w-full">
+    <input type="number" name="amount" placeholder="Amount" required class="border p-2 rounded w-full md:w-40">
+    <button type="submit" class="btn-custom px-4 py-2 rounded">{{ btn_label }}</button>
+  </form>
+</div>
+{% endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoomieHaus Budget Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/budget.css') }}">
+</head>
+<body class="theme-{{ theme }} min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+
+  {% for msg in popup_messages %}
+    <div class="notice px-4 py-3 rounded relative my-2 w-full max-w-3xl shadow" role="alert">
+      <strong class="font-bold">{{ notice_icon|default('💡') }} Notice:</strong>
+      <span class="block sm:inline">{{ msg }}</span>
+    </div>
+  {% endfor %}
+
+  <div class="w-full max-w-5xl p-4 md:p-8 card">
+    <h1 class="text-2xl md:text-3xl font-bold text-center mb-6 page-title">RoomieHaus Budget Tracker</h1>
+
+    <p class="text-center text-base md:text-lg mb-4 text-gray-700">
+      Welcome, <strong>{{ partner1 }}</strong> &amp; <strong>{{ partner2 }}</strong> ({{ status }})
+    </p>
+
+    <div class="text-center mb-8">
+      <p class="text-xl md:text-2xl font-bold text-gray-800 break-words">💰 Remaining Balance: Rp {{ "{:,}".format(balance) }}</p>
+      <p class="text-base md:text-lg mt-1 stat">📥 Total Income: Rp {{ "{:,}".format(total_income) }}</p>
+      <p class="text-base md:text-lg stat">📤 Total Outcome: Rp {{ "{:,}".format(total_outcome) }}</p>
+    </div>
+
+    {{ ledger('Income', '/add-income', income_data, '+ Income') }}
+    {{ ledger('Outcome', '/add-outcome', outcome_data, '+ Outcome') }}
+
+    <div class="flex justify-between items-center gap-3">
+      <a href="/landing-page" class="btn-custom px-4 py-2 rounded">← Back to Home</a>
+      <a href="/logout" class="logout-link">Logout</a>
+    </div>
+  </div>
+
+  <div class="my-4 text-center">
+    <button onclick="getBudgetTip()" class="tip-btn px-4 py-2 rounded">💡 Budget Tip</button>
+    <p id="budget-tip" class="mt-4 font-semibold tip-text"></p>
+  </div>
+
+  <script>
+    function getBudgetTip() {
+      fetch(`/get-random-message`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("budget-tip").innerText = data.message;
+        });
+    }
+
+    setTimeout(() => {
+      document.querySelectorAll('[role="alert"]').forEach(el => el.style.display = 'none');
+    }, {{ notice_ms|default(10000) }});
+  </script>
+
+</body>
+</html>

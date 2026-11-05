@@ -1,0 +1,97 @@
+.theme-boy {
+  --page-bg: linear-gradient(92deg, #5eabd6 20%, #d3bfab 100%);
+  --card-bg: #faf3f0;
+  --title: #34596d;
+  --btn: #34596d;
+  --btn-hover: #34596d;
+  --head-bg: #34596d;
+  --head-ink: #fff;
+  --h1: #3b82f6;
+  --stat: #3b82f6;
+  --notice-bg: #dbeafe;
+  --notice-border: #60a5fa;
+  --notice-ink: #111;
+  --tip-btn: #3b82f6;
+  --tip-btn-hover: #2563eb;
+  --tip-ink: #fff;
+}
+.theme-girl {
+  --page-bg: linear-gradient(92deg, #e5d6f5 20%, #b89fa2 100%);
+  --card-bg: #fff5f7;
+  --title: #b583c0;
+  --btn: #b89fa2;
+  --btn-hover: #b89fa2;
+  --head-bg: #e5d6f5;
+  --head-ink: #2d2433;
+  --h1: #b583c0;
+  --stat: #b583c0;
+  --notice-bg: #fce7f3;
+  --notice-border: #f9a8d4;
+  --notice-ink: #9d174d;
+  --tip-btn: #ec4899;
+  --tip-btn-hover: #db2777;
+  --tip-ink: #fce7f3;
+}
+.theme-married {
+  --page-bg: radial-gradient(circle, #f5ebdd, #d2b48c);
+  --card-bg: #fff;
+  --title: #7b3f00;
+  --btn: #7b3f00;
+  --btn-hover: #5a2e00;
+  --head-bg: #7b3f00;
+  --head-ink: #fff;
+  --h1: #7b3f00;
+  --stat: #7b3f00;
+  --notice-bg: rgba(255,255,255,0.55);
+  --notice-border: #d6c3ad;
+  --notice-ink: #111;
+  --tip-btn: #7b3f00;
+  --tip-btn-hover: #5a2e00;
+  --tip-ink: #fff;
+}
+body {
+  background: var(--page-bg);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+.card {
+  background-color: var(--card-bg);
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+.page-title { color: var(--h1); }
+.stat { color: var(--stat); }
+.section-title { color: var(--title); }
+.btn-custom {
+  background-color: var(--btn);
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s;
+}
+.btn-custom:hover { background-color: var(--btn-hover); }
+.btn-custom:active { transform: scale(0.97); }
+.table-head { background-color: var(--head-bg); color: var(--head-ink); }
+.logout-link { color: var(--stat); font-weight: 600; }
+.logout-link:hover { text-decoration: underline; }
+.notice {
+  background: var(--notice-bg);
+  border: 1px solid var(--notice-border);
+  color: var(--notice-ink);
+}
+.tip-btn {
+  background: var(--tip-btn);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s;
+}
+.tip-btn:hover { background: var(--tip-btn-hover); }
+.tip-btn:active { transform: scale(0.97); }
+.tip-text { color: var(--tip-ink); }
+.amount-cell { white-space: nowrap; }
+@media (max-width: 480px) {
+  .card { border-radius: 1.1rem; }
+  input, button { font-size: 16px; }
+}

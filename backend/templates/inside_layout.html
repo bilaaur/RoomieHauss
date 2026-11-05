@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoomieHaus Budget Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inside.css') }}">
+</head>
+<body class="relative theme-{{ theme }}">
+
+  <div id="sparkle-bg" style="pointer-events:none;z-index:0;position:fixed;top:0;left:0;width:100vw;height:100vh;"></div>
+
+  <div id="messageBoxOverlay" class="message-box-overlay">
+    <div class="message-box-content">
+      <p id="messageBoxText" class="text-lg font-medium"></p>
+      <button id="messageBoxCloseButton">OK</button>
+    </div>
+  </div>
+
+  <div class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 gap-12 main-content-entrance">
+
+    <div class="welcome-bar absolute top-6 md:top-12 w-11/12 max-w-2xl text-white text-center py-3 px-6 rounded-full shadow-lg text-base md:text-xl font-semibold tracking-wide">
+      Welcome To RoomieHaus Budget Tracker....
+    </div>
+
+    <div class="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl mt-24 md:mt-0">
+
+      <div class="relative flex-shrink-0 w-full md:w-1/2 flex justify-center items-center mb-8 md:mb-0">
+        <div class="model-frame glow-border float">
+          <model-viewer
+            src="{{ url_for('static', filename='model/' ~ model_file) }}"
+            alt="3D room"
+            auto-rotate
+            camera-controls
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            shadow-intensity="1"
+            exposure="0.75">
+          </model-viewer>
+        </div>
+        <div id="auraName" class="speech-bubble bubble-left">{{ partner1 }}</div>
+        <div id="khansaName" class="speech-bubble bubble-right">{{ partner2 }}</div>
+      </div>
+
+      <div class="flex flex-col items-center md:items-start text-center md:text-left w-full md:w-1/2 p-4 md:p-8">
+        <div class="prompt-box max-w-md md:max-w-none">
+          <p class="text-xl md:text-2xl font-semibold mb-2">Wanna Check About Who's Report Today?</p>
+          <p class="text-base md:text-lg">Touch one of the name to find out the report!!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fixed bottom-6 left-6 md:bottom-8 md:left-8 z-20">
+    <button id="backButton" class="back-button" aria-label="Go Back">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+    </button>
+  </div>
+  <audio id="bubbleSound" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae8e8.mp3"></audio>
+
+  <script>
+    function randomBetween(min, max) { return Math.random() * (max - min) + min; }
+    function createSparkle() {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'sparkle';
+      const size = randomBetween(8, 20);
+      sparkle.style.width = `${size}px`;
+      sparkle.style.height = `${size}px`;
+      sparkle.style.left = `${randomBetween(0, 100)}vw`;
+      sparkle.style.top = '110vh';
+      sparkle.style.opacity = randomBetween(0.19, 0.78);
+      sparkle.style.filter = `blur(${randomBetween(0, 2)}px)`;
+      sparkle.style.animationDuration = `${randomBetween(7, 13)}s`;
+      document.getElementById('sparkle-bg').appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 13000);
+    }
+    setInterval(() => {
+      if (document.hidden) return;
+      const n = window.innerWidth < 700 ? 1 : 2;
+      for (let i = 0; i < n; ++i) createSparkle();
+    }, 700);
+
+    function showMessageBox(message) {
+      document.getElementById('messageBoxText').textContent = message;
+      document.getElementById('messageBoxOverlay').classList.add('active');
+    }
+    function hideMessageBox() {
+      document.getElementById('messageBoxOverlay').classList.remove('active');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const auraName = document.getElementById('auraName');
+      const khansaName = document.getElementById('khansaName');
+      const bubbleSound = document.getElementById('bubbleSound');
+      function playBubbleSound() {
+        if (bubbleSound) {
+          bubbleSound.currentTime = 0;
+          bubbleSound.play().catch(() => {});
+        }
+      }
+      function bounce(el) {
+        el.style.animation = 'bubbleBounce 0.32s';
+        setTimeout(() => { el.style.animation = ''; }, 370);
+      }
+      [auraName, khansaName].forEach((el) => {
+        el.addEventListener('click', () => {
+          playBubbleSound();
+          bounce(el);
+          showMessageBox(`Checking ${el.innerText.trim()}'s report...`);
+        });
+      });
+      document.getElementById('backButton').addEventListener('click', () => window.history.back());
+      document.getElementById('messageBoxCloseButton').addEventListener('click', () => {
+        window.location.href = '/budget-page';
+      });
+      document.getElementById('messageBoxOverlay').addEventListener('click', (event) => {
+        if (event.target.id === 'messageBoxOverlay') hideMessageBox();
+      });
+      setTimeout(() => {
+        document.querySelector('.main-content-entrance').style.animationDelay = '0.25s';
+      }, 30);
+    });
+  </script>
+</body>
+</html>
